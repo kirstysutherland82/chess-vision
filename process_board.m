@@ -16,14 +16,15 @@ holes_filled = imfill(dialated_edges,"holes");
 %disregard big board
 squares_only = holes_filled & ~dialated_edges;
 double = im2double(canny_img);
-
+%initialise square coords array
+square_coords = [];
 
 
 %show boundaries labeled in green
 [B,L] = bwboundaries(squares_only,'noholes');
 stats = regionprops(L, 'Centroid', 'Area');
 minArea = 10000;
-maxArea = 1000000
+maxArea = 1000000;
 imshow(label2rgb(L, @jet, [.5 .5 .5]))
 hold on
 for k = 1:length(B)
@@ -32,31 +33,20 @@ for k = 1:length(B)
       plot(boundary(:,2), boundary(:,1), 'g', 'LineWidth', 2)
       centroid = stats(k).Centroid;
       plot(centroid(1), centroid(2), 'r*', 'MarkerSize', 10, 'LineWidth', 2);
+      %fill in square coords
+      square_coords = [square_coords; centroid];
    end
 end
 
+%sort coords into a1-h8 order
+y_sorted = sortrows(square_coords,2);
+%initialise final array
+coords_sorted = zeros(64,2);
+%loops through every 8 rows
+for i = 0:7
+   rows = ((8*i +1):(8*i) +8);
+   currentRow = y_sorted(rows, :);
 
-figure;
-imshow(gauss_img);
-
-%%%%%%%%%%%%%%%%%%% Board mask method (doesnt work) %%%%%%%%%%%%%%%%%%%
-%% Join nearby edges to form solid shapes
-%se = strel('square', 5);
-%closed_edges = imclose(canny_img, se);
-%filled_board = imfill(closed_edges, 'holes');
-%stats = regionprops(filled_board, 'Area', 'BoundingBox', 'PixelIdxList');
-%[~, idx] = max([stats.Area]); % Find index of the largest area
-
-%% Create a mask for ONLY the board
-%board_mask = false(size(filled_board));
-%board_mask(stats(idx).PixelIdxList) = true;
-%Isolate the board edges by removing background clutter
-%isolated_canny = canny_img .* board_mask;
-
-%% Crop the image to just the board's bounding box
-%board_box = stats(idx).BoundingBox;
-%cropped_board = imcrop(isolated_canny, board_box);
-
-%% show image
-%figure;
-%imshow(cropped_board);
+   %sort left to right by x coord
+   coords_sorted(rows,:) = sortrows(currentRow,1);
+end
