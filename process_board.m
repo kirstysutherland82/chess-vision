@@ -1,7 +1,9 @@
 close all; clear all; clc;
 
 % read in image
-img = imread('images\board_with_white_bg.jpg');
+raw_img = imread('images\board_with_white_bg.jpg');
+%dsiosv
+img = imrotate(raw_img,-90);
 % convert to greyscale
 grey_img = rgb2gray(img);
 % gaussian blurring filter
@@ -25,8 +27,10 @@ square_coords = [];
 stats = regionprops(L, 'Centroid', 'Area');
 minArea = 10000;
 maxArea = 1000000;
-imshow(label2rgb(L, @jet, [.5 .5 .5]))
-hold on
+figure;
+imshow(label2rgb(L, @jet, [.5 .5 .5]));
+imshow(img);
+hold on;
 for k = 1:length(B)
    if stats(k).Area>minArea && stats(k).Area<maxArea
       boundary = B{k};
@@ -49,4 +53,35 @@ for i = 0:7
 
    %sort left to right by x coord
    coords_sorted(rows,:) = sortrows(currentRow,1);
+end
+
+% make dictionary to associate 
+letters = {'h','g','f','e','d','c','b', 'a'};
+numbers = {'1','2','3','4','5','6','7', '8'};
+
+keys = strings(64,1);
+i=1;
+for num = 1:8
+   for let = 1:8
+      keys(i) = string([letters{let}, numbers{num}]);
+      i = i+1;
+   end
+end
+
+% create value pairs
+pairs = num2cell(coords_sorted,2);
+
+%create coordinate dictionary
+board_dictionary = dictionary(keys, pairs);
+
+all_keys = board_dictionary.keys;
+
+fprintf('\nall chessboard coords:\n');
+for i = 1:numel(all_keys)
+    current_key = all_keys(i);
+    val_cell = board_dictionary(current_key);
+    coords = val_cell{1}; % Unpack the cell to get [X, Y]
+    
+    %print in a readable format
+    fprintf('square %s: [X: %8.2f, Y: %8.2f]\n', current_key, coords(1), coords(2));
 end
