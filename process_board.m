@@ -1,8 +1,8 @@
 close all; clear all; clc;
 
 % read in image
-raw_img = imread('images\board_with_white_bg.jpg');
-%dsiosv
+raw_img = imread('images\week7\empty.jpg');
+%rotated back to correct orientation 
 img = imrotate(raw_img,-90);
 % convert to greyscale
 grey_img = rgb2gray(img);
@@ -56,8 +56,8 @@ for i = 0:7
 end
 
 % make dictionary to associate 
-letters = {'h','g','f','e','d','c','b', 'a'};
-numbers = {'1','2','3','4','5','6','7', '8'};
+letters = {'a','b','c','d','e','f','g', 'h'};
+numbers = {'8','7','6','5','4','3','2', '1'};
 
 keys = strings(64,1);
 i=1;
@@ -73,6 +73,7 @@ pairs = num2cell(coords_sorted,2);
 
 %create coordinate dictionary
 board_dictionary = dictionary(keys, pairs);
+save('board_calibration.mat', 'board_dictionary');
 
 all_keys = board_dictionary.keys;
 
