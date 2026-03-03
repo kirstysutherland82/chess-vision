@@ -1,13 +1,12 @@
 close all; clear all; clc;
 
 % read in image
-raw_img = imread('images\green pieces\empty.jpg');
+raw_img = imread('images\green pieces\starting.jpg');
 %rotated back to correct orientation 
 img = imrotate(raw_img,-90);
 % convert to greyscale
 grey_img = rgb2gray(img);
 % gaussian blurring filter
-%usual =  20
 gauss_img = imgaussfilt(grey_img,20);
 % canny edge detection
 canny_img = edge(gauss_img,'Canny');
@@ -43,45 +42,35 @@ for k = 1:length(B)
       square_coords = [square_coords; centroid];
    end
 end
-[ginput_x, ginput_y] = ginput(1);
 
+%sort coords into a1-h8 order
+y_sorted = sortrows(square_coords,2);
+%initialise final array
+coords_sorted = zeros(64,2);
+%loops through every 8 rows
+for i = 0:7
+   rows = ((8*i +1):(8*i) +8);
+   currentRow = y_sorted(rows, :);
+
+   %sort left to right by x coord
+   coords_sorted(rows,:) = sortrows(currentRow,1);
+end
 
 % make dictionary to associate 
 letters = {'a','b','c','d','e','f','g', 'h'};
 numbers = {'8','7','6','5','4','3','2', '1'};
-spacing = 180;
+
 keys = strings(64,1);
-pairs = cell(64,1);
 i=1;
-%sort coords
 for num = 1:8
-    for let = 1:8
-        %calculate projection from that square
-        x = ginput_x + ((let-1) * spacing);
-        y = ginput_y + ((num-1) * spacing);
-        plot(x, y, 'yo', 'MarkerSize', 5);
-
-        %create the key for that square
-        keys(i) = string([letters{let}, numbers{num}]);
-
-        %find which centroid coord is closest
-        dists = sqrt((square_coords(:,1) - x).^2 + (square_coords(:,2) - y).^2);
-        [min_dist,idx]=min(dists);
-
-        %if the closest centroid is less than half a square away (with tolerance built into spacing val)
-        if min_dist<spacing/2
-            %detect this as the next square
-            pairs{i} = square_coords(idx, :);
-        else
-            error('Calibration failed');
-
-        end
-
-        %increment i
-        i = i + 1;
-    end
+   for let = 1:8
+      keys(i) = string([letters{let}, numbers{num}]);
+      i = i+1;
+   end
 end
 
+% create value pairs
+pairs = num2cell(coords_sorted,2);
 
 %create coordinate dictionary
 board_dictionary = dictionary(keys, pairs);
